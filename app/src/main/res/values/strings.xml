@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Caisse</string>
+
+    <string name="cart_title">Panier</string>
+    <string name="cart_empty">Touchez un produit pour l\'ajouter au panier</string>
+    <string name="cart_total">Total</string>
+    <string name="cart_decrease">Diminuer la quantité de %1$s</string>
+    <string name="cart_increase">Augmenter la quantité de %1$s</string>
+    <string name="cart_remove_line">Retirer %1$s du panier</string>
 </resources>
