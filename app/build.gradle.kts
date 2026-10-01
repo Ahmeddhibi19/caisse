@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.room)
 }
 
 android {
@@ -48,11 +49,20 @@ android {
 
     lint {
         textReport = true
-        textOutput = file("stdout")
+        textOutput = File("stdout")
     }
 }
 
+room {
+    schemaDirectory("$projectDir/schemas")
+}
+
 tasks.withType<Test>().configureEach {
+    // Robolectric 4.17 reflects into JDK internals when emulating API 36+.
+    jvmArgs(
+        "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+        "--add-opens=java.base/java.io=ALL-UNNAMED",
+    )
     testLogging {
         events("failed")
         exceptionFormat = TestExceptionFormat.FULL
@@ -76,8 +86,13 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
 
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+
     testImplementation(libs.junit)
     testImplementation(libs.truth)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
 }
