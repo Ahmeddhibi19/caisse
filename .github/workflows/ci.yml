@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, "feature/**", "bugfix/**", "release/**", "hotfix/**"]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Build, lint & unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/wrapper-validation@v6
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Build, lint and test
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew assembleDebug lintDebug testDebugUnitTest --continue 2>&1 | tee build.log
+
+      # A schema change without its exported JSON means a missing migration.
+      - name: Check Room schemas are committed
+        shell: bash
+        run: |
+          changed=$(git status --porcelain --untracked-files=all -- app/schemas | awk '{ print $2 }')
+          if [ -n "$changed" ]; then
+            for f in $changed; do
+              # Annotations are capped at a few KB, so long schemas are split on line boundaries.
+              rm -rf schema-parts && mkdir schema-parts
+              split -C 3000 -d "$f" schema-parts/part-
+              total=$(ls schema-parts | wc -l)
+              i=0
+              for part in schema-parts/part-*; do
+                i=$((i + 1))
+                content=$(sed -e 's/%/%25/g' -e 's/\r//g' "$part" | awk '{ printf "%s%%0A", $0 }')
+                echo "::error file=$f,title=Room schema not committed ($i/$total)::${content}"
+              done
+            done
+            exit 1
+          fi
+
+      # Annotations are visible on the run page without digging into the raw log.
+      - name: Surface failures
+        if: failure()
+        shell: bash
+        run: |
+          {
+            grep -E '^e: ' build.log || true
+            grep -E -A12 ' FAILED$' build.log | grep -vE '^\s+at (org|java|jdk|kotlin|kotlinx|sun)\.' || true
+            grep -E ': Error: ' build.log || true
+            grep -A8 'What went wrong' build.log || true
+          } | head -n 200 | sed -e 's/%/%25/g' -e 's/\r//g' | awk '{ printf "%s%%0A", $0 }' > failures.txt
+          echo "::error title=Build failed::$(cat failures.txt)"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reports
+          path: |
+            app/build/reports
+            app/build/test-results
+          if-no-files-found: ignore
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: caisse-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+
+  database-rules:
+    name: Realtime Database rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: firebase
+    steps:
+      - uses: actions/checkout@v7
+
+      # The Firebase emulators run on the JVM.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: firebase/.nvmrc
+          cache: npm
+          cache-dependency-path: firebase/package-lock.json
+
+      - name: Install Firebase tooling
+        shell: bash
+        run: |
+          set -o pipefail
+          # The lock is produced on Windows; npm ci rejects it on Linux because optional peer
+          # dependencies resolve differently. npm install still honours every locked version it can.
+          npm install --no-audit --no-fund 2>&1 | tee npm.log
+
+      - name: Test rules against the emulator
+        shell: bash
+        run: |
+          set -o pipefail
+          npx firebase emulators:exec --only database --project demo-caisse "npm test" 2>&1 | tee rules.log
+
+      - name: Surface failures
+        if: failure()
+        shell: bash
+        run: |
+          {
+            [ -f npm.log ] && grep -E -i -A3 'npm (error|err)' npm.log
+            [ -f rules.log ] && grep -E -B2 -A12 '^not ok|# fail|Error' rules.log
+          } | head -n 150 | sed -e 's/%/%25/g' -e 's/\r//g' | awk '{ printf "%s%%0A", $0 }' > failures.txt || true
+          echo "::error title=Rules job failed::$(cat failures.txt)"

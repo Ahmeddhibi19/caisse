@@ -1,0 +1,70 @@
+package com.ahmeddhibi.caisse.domain.usecase
+
+import com.ahmeddhibi.caisse.data.cart.InMemoryCartRepository
+import com.ahmeddhibi.caisse.testing.FakePrintQueue
+import com.ahmeddhibi.caisse.testing.FakeSaleRepository
+import com.ahmeddhibi.caisse.testing.FakeSyncScheduler
+import com.ahmeddhibi.caisse.testing.TestData.croissant
+import com.ahmeddhibi.caisse.testing.TestData.espresso
+import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
+import org.junit.Test
+
+class CheckoutUseCaseTest {
+
+    private val cart = InMemoryCartRepository()
+    private val sales = FakeSaleRepository()
+    private val printQueue = FakePrintQueue()
+    private val syncScheduler = FakeSyncScheduler()
+
+    @Test
+    fun `an empty cart records nothing`() = runTest {
+        val result = checkout()
+
+        assertThat(result).isEqualTo(CheckoutResult.EmptyCart)
+        assertThat(sales.recorded).isEmpty()
+        assertThat(printQueue.wakeUps).isEqualTo(0)
+    }
+
+    @Test
+    fun `records the cart then empties it and hands the ticket to the printer and the outbox`() = runTest {
+        cart.add(croissant)
+        cart.add(croissant)
+        cart.add(espresso)
+
+        val result = checkout()
+
+        assertThat(result).isInstanceOf(CheckoutResult.Success::class.java)
+        assertThat(sales.recorded.single().map { it.product.id to it.quantity })
+            .containsExactly("croissant" to 2, "espresso" to 1)
+        assertThat(cart.cart.value.isEmpty).isTrue()
+        assertThat(printQueue.wakeUps).isEqualTo(1)
+        assertThat(syncScheduler.requests).isEqualTo(1)
+    }
+
+    @Test
+    fun `a sale that fails to be stored puts the lines back in the cart`() = runTest {
+        sales.failure = IllegalStateException("disk full")
+        cart.add(croissant)
+
+        val error = runCatching { checkout() }.exceptionOrNull()
+
+        assertThat(error).isInstanceOf(IllegalStateException::class.java)
+        assertThat(cart.cart.value.quantityOf("croissant")).isEqualTo(1)
+        assertThat(printQueue.wakeUps).isEqualTo(0)
+        assertThat(syncScheduler.requests).isEqualTo(0)
+    }
+
+    // Like the real application scope, a supervisor: one failed checkout must not cancel it.
+    private suspend fun TestScope.checkout(): CheckoutResult = CheckoutUseCase(
+        cartRepository = cart,
+        saleRepository = sales,
+        printQueue = printQueue,
+        syncScheduler = syncScheduler,
+        appScope = CoroutineScope(SupervisorJob() + StandardTestDispatcher(testScheduler)),
+    ).invoke()
+}

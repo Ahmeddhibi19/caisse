@@ -1,0 +1,64 @@
+<resources>
+    <string name="app_name">Caisse</string>
+
+    <string name="cart_title">Panier</string>
+    <string name="cart_empty">Touchez un produit pour l\'ajouter au panier</string>
+    <string name="cart_total">Total</string>
+    <string name="cart_decrease">Diminuer la quantité de %1$s</string>
+    <string name="cart_increase">Augmenter la quantité de %1$s</string>
+    <string name="cart_remove_line">Retirer %1$s du panier</string>
+
+    <string name="pos_title">Caisse %1$s</string>
+    <string name="pos_checkout">Encaisser %1$s</string>
+    <string name="pos_ticket_recorded">Ticket %1$s encaissé · %2$s</string>
+    <string name="pos_checkout_failed">La vente n\'a pas pu être enregistrée, le panier a été conservé.</string>
+
+    <string name="pos_printer_settings">Réglages de l\'imprimante</string>
+    <string name="pos_open_history">Historique des ventes</string>
+
+    <string name="history_title">Historique des ventes</string>
+    <string name="history_empty">Aucune vente pour le moment. Les tickets encaissés apparaîtront ici, même hors ligne.</string>
+    <string name="history_sale_details">%1$s · %2$s</string>
+    <string name="history_reprint">Réimprimer</string>
+    <plurals name="history_items">
+        <item quantity="one">%d article</item>
+        <item quantity="many">%d articles</item>
+        <item quantity="other">%d articles</item>
+    </plurals>
+
+    <string name="print_status_pending">En attente</string>
+    <string name="print_status_printed">Imprimé</string>
+    <string name="print_status_failed">Échec</string>
+
+    <string name="sync_status_pending">À synchroniser</string>
+    <string name="sync_status_synced">Synchronisé</string>
+    <string name="sync_status_conflict">Conflit</string>
+    <string name="history_retry_sync">Relancer la synchro</string>
+
+    <string name="network_online">En ligne</string>
+    <string name="network_offline">Hors ligne</string>
+    <plurals name="network_pending_sync">
+        <item quantity="one">%d à synchroniser</item>
+        <item quantity="many">%d à synchroniser</item>
+        <item quantity="other">%d à synchroniser</item>
+    </plurals>
+
+    <string name="printer_dialog_title">Imprimante simulée</string>
+    <string name="printer_dialog_explanation">Pour montrer les échecs d\'impression et leur reprise sans imprimante réelle.</string>
+    <string name="printer_mode_normal">Normale</string>
+    <string name="printer_mode_normal_description">Chaque ticket est imprimé.</string>
+    <string name="printer_mode_unstable">Instable</string>
+    <string name="printer_mode_unstable_description">Environ un ticket sur trois échoue (bourrage papier).</string>
+    <string name="printer_mode_offline">Hors ligne</string>
+    <string name="printer_mode_offline_description">Imprimante injoignable : toutes les impressions échouent.</string>
+
+    <string name="action_retry">Réessayer</string>
+    <string name="action_close">Fermer</string>
+    <string name="action_back">Retour</string>
+
+    <string name="enrollment_title">Configuration de la caisse</string>
+    <string name="enrollment_explanation">Au premier lancement, cette tablette réserve un numéro de caisse auprès du serveur. Ce numéro préfixe tous ses tickets : aucune autre caisse ne pourra produire les mêmes, même hors ligne.</string>
+    <string name="enrollment_waiting_network">Une connexion est nécessaire pour cette étape, une seule fois. La configuration reprendra dès que le réseau sera disponible.</string>
+    <string name="enrollment_in_progress">Réservation d\'un numéro de caisse…</string>
+    <string name="enrollment_failed">Le serveur n\'a pas répondu. Vérifiez la connexion puis réessayez.</string>
+</resources>
