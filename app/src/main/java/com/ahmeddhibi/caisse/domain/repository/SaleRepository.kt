@@ -16,4 +16,10 @@ interface SaleRepository {
 
     /** Puts a failed ticket back in the print queue. Returns false if it was not failed. */
     suspend fun requestReprint(saleId: String): Boolean
+
+    /** Sales recorded but not yet acknowledged by the server. */
+    fun observePendingSyncCount(): Flow<Int>
+
+    /** Puts a sale rejected by the server back in the outbox. Returns false if it was not in conflict. */
+    suspend fun requeueSync(saleId: String): Boolean
 }

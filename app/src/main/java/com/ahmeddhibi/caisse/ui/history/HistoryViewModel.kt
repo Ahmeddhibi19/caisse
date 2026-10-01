@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ahmeddhibi.caisse.domain.printing.TicketFormatter
 import com.ahmeddhibi.caisse.domain.repository.SaleRepository
 import com.ahmeddhibi.caisse.domain.usecase.RetryPrintUseCase
+import com.ahmeddhibi.caisse.domain.usecase.RetrySyncUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 class HistoryViewModel @Inject constructor(
     saleRepository: SaleRepository,
     private val retryPrint: RetryPrintUseCase,
+    private val retrySync: RetrySyncUseCase,
     private val formatter: TicketFormatter,
 ) : ViewModel() {
 
@@ -46,5 +48,9 @@ class HistoryViewModel @Inject constructor(
 
     fun onReprint(saleId: String) {
         viewModelScope.launch { retryPrint(saleId) }
+    }
+
+    fun onRetrySync(saleId: String) {
+        viewModelScope.launch { retrySync(saleId) }
     }
 }

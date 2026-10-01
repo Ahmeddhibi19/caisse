@@ -4,10 +4,12 @@ import com.ahmeddhibi.caisse.data.cart.InMemoryCartRepository
 import com.ahmeddhibi.caisse.data.catalog.HardcodedProductRepository
 import com.ahmeddhibi.caisse.domain.printing.PrinterMode
 import com.ahmeddhibi.caisse.domain.usecase.CheckoutUseCase
+import com.ahmeddhibi.caisse.testing.FakeNetworkMonitor
 import com.ahmeddhibi.caisse.testing.FakePrintQueue
 import com.ahmeddhibi.caisse.testing.FakePrinterSettingsRepository
 import com.ahmeddhibi.caisse.testing.FakeRegisterRepository
 import com.ahmeddhibi.caisse.testing.FakeSaleRepository
+import com.ahmeddhibi.caisse.testing.FakeSyncScheduler
 import com.ahmeddhibi.caisse.testing.MainDispatcherRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CompletableDeferred
@@ -31,6 +33,7 @@ class PosViewModelTest {
 
     private val cart = InMemoryCartRepository()
     private val sales = FakeSaleRepository()
+    private val network = FakeNetworkMonitor(initiallyOnline = true)
     private lateinit var appScope: CoroutineScope
     private lateinit var viewModel: PosViewModel
 
@@ -41,8 +44,10 @@ class PosViewModelTest {
             productRepository = HardcodedProductRepository(),
             cartRepository = cart,
             registerRepository = FakeRegisterRepository(),
-            checkout = CheckoutUseCase(cart, sales, FakePrintQueue(), appScope),
+            checkout = CheckoutUseCase(cart, sales, FakePrintQueue(), FakeSyncScheduler(), appScope),
             printerSettings = FakePrinterSettingsRepository(),
+            networkMonitor = network,
+            saleRepository = sales,
         )
     }
 
@@ -164,6 +169,17 @@ class PosViewModelTest {
         advanceUntilIdle()
 
         assertThat(viewModel.uiState.value.printerMode).isEqualTo(PrinterMode.OFFLINE)
+    }
+
+    @Test
+    fun `shows the network state and the sales waiting for the server`() = runTest {
+        collectState()
+
+        network.online.value = false
+        sales.pendingSyncCount.value = 3
+
+        assertThat(viewModel.uiState.value.isOnline).isFalse()
+        assertThat(viewModel.uiState.value.pendingSyncCount).isEqualTo(3)
     }
 
     private fun TestScope.collectState() {

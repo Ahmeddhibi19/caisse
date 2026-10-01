@@ -2,12 +2,14 @@ package com.ahmeddhibi.caisse.ui.pos
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ahmeddhibi.caisse.core.network.NetworkMonitor
 import com.ahmeddhibi.caisse.domain.model.Product
 import com.ahmeddhibi.caisse.domain.printing.PrinterMode
 import com.ahmeddhibi.caisse.domain.printing.PrinterSettingsRepository
 import com.ahmeddhibi.caisse.domain.repository.CartRepository
 import com.ahmeddhibi.caisse.domain.repository.ProductRepository
 import com.ahmeddhibi.caisse.domain.repository.RegisterRepository
+import com.ahmeddhibi.caisse.domain.repository.SaleRepository
 import com.ahmeddhibi.caisse.domain.usecase.CheckoutResult
 import com.ahmeddhibi.caisse.domain.usecase.CheckoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,25 +31,35 @@ class PosViewModel @Inject constructor(
     registerRepository: RegisterRepository,
     private val checkout: CheckoutUseCase,
     private val printerSettings: PrinterSettingsRepository,
+    networkMonitor: NetworkMonitor,
+    saleRepository: SaleRepository,
 ) : ViewModel() {
 
     private val products = productRepository.products
     private val checkoutState = MutableStateFlow(CheckoutState())
     private var checkoutJob: Job? = null
 
+    private val status = combine(
+        printerSettings.mode,
+        networkMonitor.isOnline,
+        saleRepository.observePendingSyncCount(),
+    ) { printerMode, isOnline, pendingSyncCount -> TillStatus(printerMode, isOnline, pendingSyncCount) }
+
     val uiState: StateFlow<PosUiState> = combine(
         cartRepository.cart,
         registerRepository.register,
         checkoutState,
-        printerSettings.mode,
-    ) { cart, register, state, printerMode ->
+        status,
+    ) { cart, register, state, till ->
         PosUiState(
             products = products,
             cart = cart,
             registerKey = register?.key,
             isCheckingOut = state.inProgress,
             message = state.message,
-            printerMode = printerMode,
+            printerMode = till.printerMode,
+            isOnline = till.isOnline,
+            pendingSyncCount = till.pendingSyncCount,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -89,6 +101,12 @@ class PosViewModel @Inject constructor(
     fun onPrinterModeSelected(mode: PrinterMode) {
         viewModelScope.launch { printerSettings.setMode(mode) }
     }
+
+    private data class TillStatus(
+        val printerMode: PrinterMode,
+        val isOnline: Boolean,
+        val pendingSyncCount: Int,
+    )
 
     private data class CheckoutState(
         val inProgress: Boolean = false,

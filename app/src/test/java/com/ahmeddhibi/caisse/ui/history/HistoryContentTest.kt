@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.ahmeddhibi.caisse.domain.model.PrintStatus
 import com.ahmeddhibi.caisse.domain.model.Sale
+import com.ahmeddhibi.caisse.domain.model.SyncStatus
 import com.ahmeddhibi.caisse.testing.sale
 import com.ahmeddhibi.caisse.ui.theme.CaisseTheme
 import com.google.common.truth.Truth.assertThat
@@ -23,6 +24,7 @@ class HistoryContentTest {
     val composeRule = createComposeRule()
 
     private var reprinted: String? = null
+    private var resynced: String? = null
 
     @Test
     fun `lists each sale with its number and print state`() {
@@ -45,6 +47,16 @@ class HistoryContentTest {
     }
 
     @Test
+    fun `a sale rejected by the server can be sent again`() {
+        show(sale(sequence = 1, printStatus = PrintStatus.PRINTED, syncStatus = SyncStatus.CONFLICT))
+
+        composeRule.onNodeWithText("Conflit").assertExists()
+        composeRule.onNodeWithText("Relancer la synchro").performClick()
+
+        assertThat(resynced).isEqualTo("sale-1")
+    }
+
+    @Test
     fun `explains the empty history`() {
         show()
 
@@ -59,6 +71,7 @@ class HistoryContentTest {
                     onBack = {},
                     onSaleClick = {},
                     onReprint = { reprinted = it },
+                    onRetrySync = { resynced = it },
                     onPreviewDismissed = {},
                 )
             }

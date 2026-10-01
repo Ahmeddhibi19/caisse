@@ -33,6 +33,15 @@
     <string name="sync_status_pending">À synchroniser</string>
     <string name="sync_status_synced">Synchronisé</string>
     <string name="sync_status_conflict">Conflit</string>
+    <string name="history_retry_sync">Relancer la synchro</string>
+
+    <string name="network_online">En ligne</string>
+    <string name="network_offline">Hors ligne</string>
+    <plurals name="network_pending_sync">
+        <item quantity="one">%d à synchroniser</item>
+        <item quantity="many">%d à synchroniser</item>
+        <item quantity="other">%d à synchroniser</item>
+    </plurals>
 
     <string name="printer_dialog_title">Imprimante simulée</string>
     <string name="printer_dialog_explanation">Pour montrer les échecs d\'impression et leur reprise sans imprimante réelle.</string>

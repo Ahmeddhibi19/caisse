@@ -3,8 +3,10 @@ package com.ahmeddhibi.caisse.ui.history
 import com.ahmeddhibi.caisse.domain.model.PrintStatus
 import com.ahmeddhibi.caisse.domain.printing.TicketFormatter
 import com.ahmeddhibi.caisse.domain.usecase.RetryPrintUseCase
+import com.ahmeddhibi.caisse.domain.usecase.RetrySyncUseCase
 import com.ahmeddhibi.caisse.testing.FakePrintQueue
 import com.ahmeddhibi.caisse.testing.FakeSaleRepository
+import com.ahmeddhibi.caisse.testing.FakeSyncScheduler
 import com.ahmeddhibi.caisse.testing.MainDispatcherRule
 import com.ahmeddhibi.caisse.testing.sale
 import com.google.common.truth.Truth.assertThat
@@ -24,6 +26,7 @@ class HistoryViewModelTest {
 
     private val sales = FakeSaleRepository()
     private val printQueue = FakePrintQueue()
+    private val syncScheduler = FakeSyncScheduler()
     private lateinit var viewModel: HistoryViewModel
 
     @Before
@@ -31,6 +34,7 @@ class HistoryViewModelTest {
         viewModel = HistoryViewModel(
             saleRepository = sales,
             retryPrint = RetryPrintUseCase(sales, printQueue),
+            retrySync = RetrySyncUseCase(sales, syncScheduler),
             formatter = TicketFormatter(Clock.systemUTC()),
         )
     }
@@ -78,6 +82,14 @@ class HistoryViewModelTest {
         viewModel.onReprint("sale-1")
 
         assertThat(printQueue.wakeUps).isEqualTo(0)
+    }
+
+    @Test
+    fun `a conflicting sale goes back to the outbox and a sync is requested`() = runTest {
+        viewModel.onRetrySync("sale-1")
+
+        assertThat(sales.syncRequeueRequests).containsExactly("sale-1")
+        assertThat(syncScheduler.requests).isEqualTo(1)
     }
 
     private fun TestScope.collectState() {

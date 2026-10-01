@@ -18,6 +18,7 @@ import com.ahmeddhibi.caisse.core.format.format
 import com.ahmeddhibi.caisse.core.format.formatDateTime
 import com.ahmeddhibi.caisse.domain.model.PrintStatus
 import com.ahmeddhibi.caisse.domain.model.Sale
+import com.ahmeddhibi.caisse.domain.model.SyncStatus
 import com.ahmeddhibi.caisse.ui.common.PrintStatusBadge
 import com.ahmeddhibi.caisse.ui.common.SyncStatusLabel
 
@@ -26,6 +27,7 @@ fun SaleRow(
     sale: Sale,
     onClick: () -> Unit,
     onReprint: () -> Unit,
+    onRetrySync: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     ListItem(
@@ -55,6 +57,11 @@ fun SaleRow(
                 if (sale.printStatus == PrintStatus.FAILED) {
                     TextButton(onClick = onReprint) {
                         Text(stringResource(R.string.history_reprint))
+                    }
+                }
+                if (sale.syncStatus == SyncStatus.CONFLICT) {
+                    TextButton(onClick = onRetrySync) {
+                        Text(stringResource(R.string.history_retry_sync))
                     }
                 }
             }
