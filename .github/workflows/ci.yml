@@ -108,7 +108,11 @@ jobs:
           cache: npm
           cache-dependency-path: firebase/package-lock.json
 
-      - run: npm ci
+      - name: Install Firebase tooling
+        shell: bash
+        run: |
+          set -o pipefail
+          npm ci --no-audit --no-fund 2>&1 | tee npm.log
 
       - name: Test rules against the emulator
         shell: bash
@@ -120,6 +124,8 @@ jobs:
         if: failure()
         shell: bash
         run: |
-          grep -E -B2 -A12 '^not ok|# fail|Error' rules.log | head -n 150 \
-            | sed -e 's/%/%25/g' -e 's/\r//g' | awk '{ printf "%s%%0A", $0 }' > failures.txt || true
-          echo "::error title=Rules tests failed::$(cat failures.txt)"
+          {
+            [ -f npm.log ] && grep -E -i -A3 'npm (error|err)' npm.log
+            [ -f rules.log ] && grep -E -B2 -A12 '^not ok|# fail|Error' rules.log
+          } | head -n 150 | sed -e 's/%/%25/g' -e 's/\r//g' | awk '{ printf "%s%%0A", $0 }' > failures.txt || true
+          echo "::error title=Rules job failed::$(cat failures.txt)"
