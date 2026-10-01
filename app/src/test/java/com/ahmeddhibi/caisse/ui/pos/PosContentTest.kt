@@ -79,6 +79,7 @@ class PosContentTest {
                     onCheckout = { checkouts++ },
                     onMessageShown = {},
                     onPrinterModeSelected = {},
+                    onOpenHistory = {},
                 )
             }
         }
