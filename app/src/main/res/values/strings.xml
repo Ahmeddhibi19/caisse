@@ -13,7 +13,19 @@
     <string name="pos_ticket_recorded">Ticket %1$s encaissé · %2$s</string>
     <string name="pos_checkout_failed">La vente n\'a pas pu être enregistrée, le panier a été conservé.</string>
 
+    <string name="pos_printer_settings">Réglages de l\'imprimante</string>
+
+    <string name="printer_dialog_title">Imprimante simulée</string>
+    <string name="printer_dialog_explanation">Pour montrer les échecs d\'impression et leur reprise sans imprimante réelle.</string>
+    <string name="printer_mode_normal">Normale</string>
+    <string name="printer_mode_normal_description">Chaque ticket est imprimé.</string>
+    <string name="printer_mode_unstable">Instable</string>
+    <string name="printer_mode_unstable_description">Environ un ticket sur trois échoue (bourrage papier).</string>
+    <string name="printer_mode_offline">Hors ligne</string>
+    <string name="printer_mode_offline_description">Imprimante injoignable : toutes les impressions échouent.</string>
+
     <string name="action_retry">Réessayer</string>
+    <string name="action_close">Fermer</string>
 
     <string name="enrollment_title">Configuration de la caisse</string>
     <string name="enrollment_explanation">Au premier lancement, cette tablette réserve un numéro de caisse auprès du serveur. Ce numéro préfixe tous ses tickets : aucune autre caisse ne pourra produire les mêmes, même hors ligne.</string>

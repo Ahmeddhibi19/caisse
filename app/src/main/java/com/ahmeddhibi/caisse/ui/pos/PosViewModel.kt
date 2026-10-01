@@ -3,6 +3,8 @@ package com.ahmeddhibi.caisse.ui.pos
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ahmeddhibi.caisse.domain.model.Product
+import com.ahmeddhibi.caisse.domain.printing.PrinterMode
+import com.ahmeddhibi.caisse.domain.printing.PrinterSettingsRepository
 import com.ahmeddhibi.caisse.domain.repository.CartRepository
 import com.ahmeddhibi.caisse.domain.repository.ProductRepository
 import com.ahmeddhibi.caisse.domain.repository.RegisterRepository
@@ -26,6 +28,7 @@ class PosViewModel @Inject constructor(
     private val cartRepository: CartRepository,
     registerRepository: RegisterRepository,
     private val checkout: CheckoutUseCase,
+    private val printerSettings: PrinterSettingsRepository,
 ) : ViewModel() {
 
     private val products = productRepository.products
@@ -36,13 +39,15 @@ class PosViewModel @Inject constructor(
         cartRepository.cart,
         registerRepository.register,
         checkoutState,
-    ) { cart, register, state ->
+        printerSettings.mode,
+    ) { cart, register, state, printerMode ->
         PosUiState(
             products = products,
             cart = cart,
             registerKey = register?.key,
             isCheckingOut = state.inProgress,
             message = state.message,
+            printerMode = printerMode,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -80,6 +85,10 @@ class PosViewModel @Inject constructor(
     }
 
     fun onMessageShown() = checkoutState.update { it.copy(message = null) }
+
+    fun onPrinterModeSelected(mode: PrinterMode) {
+        viewModelScope.launch { printerSettings.setMode(mode) }
+    }
 
     private data class CheckoutState(
         val inProgress: Boolean = false,

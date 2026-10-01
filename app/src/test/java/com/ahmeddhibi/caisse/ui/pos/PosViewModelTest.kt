@@ -2,7 +2,10 @@ package com.ahmeddhibi.caisse.ui.pos
 
 import com.ahmeddhibi.caisse.data.cart.InMemoryCartRepository
 import com.ahmeddhibi.caisse.data.catalog.HardcodedProductRepository
+import com.ahmeddhibi.caisse.domain.printing.PrinterMode
 import com.ahmeddhibi.caisse.domain.usecase.CheckoutUseCase
+import com.ahmeddhibi.caisse.testing.FakePrintQueue
+import com.ahmeddhibi.caisse.testing.FakePrinterSettingsRepository
 import com.ahmeddhibi.caisse.testing.FakeRegisterRepository
 import com.ahmeddhibi.caisse.testing.FakeSaleRepository
 import com.ahmeddhibi.caisse.testing.MainDispatcherRule
@@ -38,7 +41,8 @@ class PosViewModelTest {
             productRepository = HardcodedProductRepository(),
             cartRepository = cart,
             registerRepository = FakeRegisterRepository(),
-            checkout = CheckoutUseCase(cart, sales, appScope),
+            checkout = CheckoutUseCase(cart, sales, FakePrintQueue(), appScope),
+            printerSettings = FakePrinterSettingsRepository(),
         )
     }
 
@@ -149,6 +153,17 @@ class PosViewModelTest {
         viewModel.onMessageShown()
 
         assertThat(viewModel.uiState.value.message).isNull()
+    }
+
+    @Test
+    fun `the simulated printer mode can be changed from the till`() = runTest {
+        collectState()
+        assertThat(viewModel.uiState.value.printerMode).isEqualTo(PrinterMode.NORMAL)
+
+        viewModel.onPrinterModeSelected(PrinterMode.OFFLINE)
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.printerMode).isEqualTo(PrinterMode.OFFLINE)
     }
 
     private fun TestScope.collectState() {
