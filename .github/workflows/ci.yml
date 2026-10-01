@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, "feature/**", "bugfix/**", "release/**", "hotfix/**"]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Build, lint & unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/wrapper-validation@v6
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Build, lint and test
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew assembleDebug lintDebug testDebugUnitTest --continue 2>&1 | tee build.log
+
+      # Annotations are visible on the run page without digging into the raw log.
+      - name: Surface failures
+        if: failure()
+        shell: bash
+        run: |
+          {
+            grep -E '^e: ' build.log || true
+            grep -E -A12 ' FAILED$' build.log | grep -vE '^\s+at (org|java|jdk|kotlin|kotlinx|sun)\.' || true
+            grep -E ': Error: ' build.log || true
+            grep -A8 'What went wrong' build.log || true
+          } | head -n 200 | sed -e 's/%/%25/g' -e 's/\r//g' | awk '{ printf "%s%%0A", $0 }' > failures.txt
+          echo "::error title=Build failed::$(cat failures.txt)"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reports
+          path: |
+            app/build/reports
+            app/build/test-results
+          if-no-files-found: ignore
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: caisse-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
