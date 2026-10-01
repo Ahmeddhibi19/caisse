@@ -8,6 +8,11 @@
     <string name="cart_increase">Augmenter la quantité de %1$s</string>
     <string name="cart_remove_line">Retirer %1$s du panier</string>
 
+    <string name="pos_title">Caisse %1$s</string>
+    <string name="pos_checkout">Encaisser %1$s</string>
+    <string name="pos_ticket_recorded">Ticket %1$s encaissé · %2$s</string>
+    <string name="pos_checkout_failed">La vente n\'a pas pu être enregistrée, le panier a été conservé.</string>
+
     <string name="action_retry">Réessayer</string>
 
     <string name="enrollment_title">Configuration de la caisse</string>
