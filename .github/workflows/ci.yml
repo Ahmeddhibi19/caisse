@@ -112,7 +112,9 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          npm ci --no-audit --no-fund 2>&1 | tee npm.log
+          # The lock is produced on Windows; npm ci rejects it on Linux because optional peer
+          # dependencies resolve differently. npm install still honours every locked version it can.
+          npm install --no-audit --no-fund 2>&1 | tee npm.log
 
       - name: Test rules against the emulator
         shell: bash
