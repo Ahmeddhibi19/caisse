@@ -12,6 +12,8 @@ data class PosUiState(
     val isCheckingOut: Boolean = false,
     val message: PosMessage? = null,
     val printerMode: PrinterMode = PrinterMode.NORMAL,
+    val isOnline: Boolean = true,
+    val pendingSyncCount: Int = 0,
 ) {
     val canCheckout: Boolean get() = !cart.isEmpty && !isCheckingOut
 }

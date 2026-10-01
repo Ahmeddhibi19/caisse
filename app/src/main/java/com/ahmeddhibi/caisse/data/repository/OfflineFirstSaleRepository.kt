@@ -68,4 +68,8 @@ class OfflineFirstSaleRepository @Inject constructor(
         saleDao.observeAll().map { sales -> sales.map { it.toDomain() } }
 
     override suspend fun requestReprint(saleId: String): Boolean = saleDao.requeueFailedPrint(saleId) == 1
+
+    override fun observePendingSyncCount(): Flow<Int> = saleDao.observePendingSyncCount()
+
+    override suspend fun requeueSync(saleId: String): Boolean = saleDao.requeueConflict(saleId) == 1
 }

@@ -38,6 +38,7 @@ import com.ahmeddhibi.caisse.R
 import com.ahmeddhibi.caisse.core.format.format
 import com.ahmeddhibi.caisse.domain.model.Product
 import com.ahmeddhibi.caisse.domain.printing.PrinterMode
+import com.ahmeddhibi.caisse.ui.common.ConnectivityChip
 import com.ahmeddhibi.caisse.ui.pos.components.CartPanel
 import com.ahmeddhibi.caisse.ui.pos.components.PrinterModeDialog
 import com.ahmeddhibi.caisse.ui.pos.components.ProductGrid
@@ -99,6 +100,7 @@ fun PosContent(
                     )
                 },
                 actions = {
+                    ConnectivityChip(isOnline = uiState.isOnline, pendingSyncCount = uiState.pendingSyncCount)
                     IconButton(onClick = onOpenHistory) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.List,

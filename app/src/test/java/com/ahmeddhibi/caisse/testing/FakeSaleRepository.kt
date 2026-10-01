@@ -24,6 +24,9 @@ class FakeSaleRepository : SaleRepository {
     val stored = MutableStateFlow<List<Sale>>(emptyList())
     val reprintRequests = mutableListOf<String>()
     var reprintAccepted = true
+    val pendingSyncCount = MutableStateFlow(0)
+    val syncRequeueRequests = mutableListOf<String>()
+    var syncRequeueAccepted = true
 
     private var sequence = 0L
 
@@ -50,5 +53,12 @@ class FakeSaleRepository : SaleRepository {
     override suspend fun requestReprint(saleId: String): Boolean {
         reprintRequests += saleId
         return reprintAccepted
+    }
+
+    override fun observePendingSyncCount(): Flow<Int> = pendingSyncCount
+
+    override suspend fun requeueSync(saleId: String): Boolean {
+        syncRequeueRequests += saleId
+        return syncRequeueAccepted
     }
 }

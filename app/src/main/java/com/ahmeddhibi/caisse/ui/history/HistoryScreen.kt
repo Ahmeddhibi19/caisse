@@ -40,6 +40,7 @@ fun HistoryScreen(
         onBack = onBack,
         onSaleClick = viewModel::onSaleClick,
         onReprint = viewModel::onReprint,
+        onRetrySync = viewModel::onRetrySync,
         onPreviewDismissed = viewModel::onPreviewDismissed,
     )
 }
@@ -51,6 +52,7 @@ fun HistoryContent(
     onBack: () -> Unit,
     onSaleClick: (String) -> Unit,
     onReprint: (String) -> Unit,
+    onRetrySync: (String) -> Unit,
     onPreviewDismissed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -91,6 +93,7 @@ fun HistoryContent(
                         sale = sale,
                         onClick = { onSaleClick(sale.id) },
                         onReprint = { onReprint(sale.id) },
+                        onRetrySync = { onRetrySync(sale.id) },
                     )
                     HorizontalDivider()
                 }
