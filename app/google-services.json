@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "000000000000",
+    "firebase_url": "https://caisse-demo-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "caisse-demo",
+    "storage_bucket": "caisse-demo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+        "android_client_info": {
+          "package_name": "com.ahmeddhibi.caisse"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "replace-with-the-firebase-project-api-key"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
