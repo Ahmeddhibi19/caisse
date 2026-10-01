@@ -2,6 +2,7 @@ package com.ahmeddhibi.caisse.domain.usecase
 
 import com.ahmeddhibi.caisse.core.coroutines.ApplicationScope
 import com.ahmeddhibi.caisse.domain.model.Sale
+import com.ahmeddhibi.caisse.domain.printing.PrintQueue
 import com.ahmeddhibi.caisse.domain.repository.CartRepository
 import com.ahmeddhibi.caisse.domain.repository.SaleRepository
 import javax.inject.Inject
@@ -11,6 +12,7 @@ import kotlinx.coroutines.async
 class CheckoutUseCase @Inject constructor(
     private val cartRepository: CartRepository,
     private val saleRepository: SaleRepository,
+    private val printQueue: PrintQueue,
     @ApplicationScope private val appScope: CoroutineScope,
 ) {
 
@@ -26,6 +28,8 @@ class CheckoutUseCase @Inject constructor(
             cartRepository.restore(lines)
             throw e
         }
+        // The sale is committed: printing happens in the background, the cashier gets the hand back now.
+        printQueue.wake()
         CheckoutResult.Success(sale)
     }.await()
 }
