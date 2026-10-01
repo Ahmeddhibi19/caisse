@@ -2,8 +2,12 @@ package com.ahmeddhibi.caisse.core.di
 
 import com.ahmeddhibi.caisse.data.cart.InMemoryCartRepository
 import com.ahmeddhibi.caisse.data.catalog.HardcodedProductRepository
+import com.ahmeddhibi.caisse.data.remote.FirebaseRegisterDataSource
+import com.ahmeddhibi.caisse.data.remote.RegisterRemoteDataSource
+import com.ahmeddhibi.caisse.data.repository.DefaultRegisterRepository
 import com.ahmeddhibi.caisse.domain.repository.CartRepository
 import com.ahmeddhibi.caisse.domain.repository.ProductRepository
+import com.ahmeddhibi.caisse.domain.repository.RegisterRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -18,4 +22,10 @@ abstract class DataModule {
 
     @Binds
     abstract fun bindCartRepository(impl: InMemoryCartRepository): CartRepository
+
+    @Binds
+    abstract fun bindRegisterRepository(impl: DefaultRegisterRepository): RegisterRepository
+
+    @Binds
+    abstract fun bindRegisterRemoteDataSource(impl: FirebaseRegisterDataSource): RegisterRemoteDataSource
 }
