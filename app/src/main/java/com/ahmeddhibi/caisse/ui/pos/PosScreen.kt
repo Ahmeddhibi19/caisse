@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,7 +43,10 @@ import com.ahmeddhibi.caisse.ui.pos.components.PrinterModeDialog
 import com.ahmeddhibi.caisse.ui.pos.components.ProductGrid
 
 @Composable
-fun PosScreen(viewModel: PosViewModel = hiltViewModel()) {
+fun PosScreen(
+    onOpenHistory: () -> Unit,
+    viewModel: PosViewModel = hiltViewModel(),
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     PosContent(
         uiState = uiState,
@@ -52,6 +56,7 @@ fun PosScreen(viewModel: PosViewModel = hiltViewModel()) {
         onCheckout = viewModel::onCheckoutClick,
         onMessageShown = viewModel::onMessageShown,
         onPrinterModeSelected = viewModel::onPrinterModeSelected,
+        onOpenHistory = onOpenHistory,
     )
 }
 
@@ -65,6 +70,7 @@ fun PosContent(
     onCheckout: () -> Unit,
     onMessageShown: () -> Unit,
     onPrinterModeSelected: (PrinterMode) -> Unit,
+    onOpenHistory: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showPrinterSettings by rememberSaveable { mutableStateOf(false) }
@@ -93,6 +99,12 @@ fun PosContent(
                     )
                 },
                 actions = {
+                    IconButton(onClick = onOpenHistory) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.List,
+                            contentDescription = stringResource(R.string.pos_open_history),
+                        )
+                    }
                     IconButton(onClick = { showPrinterSettings = true }) {
                         Icon(
                             imageVector = Icons.Default.Settings,

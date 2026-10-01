@@ -14,6 +14,25 @@
     <string name="pos_checkout_failed">La vente n\'a pas pu être enregistrée, le panier a été conservé.</string>
 
     <string name="pos_printer_settings">Réglages de l\'imprimante</string>
+    <string name="pos_open_history">Historique des ventes</string>
+
+    <string name="history_title">Historique des ventes</string>
+    <string name="history_empty">Aucune vente pour le moment. Les tickets encaissés apparaîtront ici, même hors ligne.</string>
+    <string name="history_sale_details">%1$s · %2$s</string>
+    <string name="history_reprint">Réimprimer</string>
+    <plurals name="history_items">
+        <item quantity="one">%d article</item>
+        <item quantity="many">%d articles</item>
+        <item quantity="other">%d articles</item>
+    </plurals>
+
+    <string name="print_status_pending">En attente</string>
+    <string name="print_status_printed">Imprimé</string>
+    <string name="print_status_failed">Échec</string>
+
+    <string name="sync_status_pending">À synchroniser</string>
+    <string name="sync_status_synced">Synchronisé</string>
+    <string name="sync_status_conflict">Conflit</string>
 
     <string name="printer_dialog_title">Imprimante simulée</string>
     <string name="printer_dialog_explanation">Pour montrer les échecs d\'impression et leur reprise sans imprimante réelle.</string>
@@ -26,6 +45,7 @@
 
     <string name="action_retry">Réessayer</string>
     <string name="action_close">Fermer</string>
+    <string name="action_back">Retour</string>
 
     <string name="enrollment_title">Configuration de la caisse</string>
     <string name="enrollment_explanation">Au premier lancement, cette tablette réserve un numéro de caisse auprès du serveur. Ce numéro préfixe tous ses tickets : aucune autre caisse ne pourra produire les mêmes, même hors ligne.</string>

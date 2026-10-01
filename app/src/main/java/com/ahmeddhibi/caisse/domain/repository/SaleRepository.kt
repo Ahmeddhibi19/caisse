@@ -2,6 +2,7 @@ package com.ahmeddhibi.caisse.domain.repository
 
 import com.ahmeddhibi.caisse.domain.model.CartLine
 import com.ahmeddhibi.caisse.domain.model.Sale
+import kotlinx.coroutines.flow.Flow
 
 interface SaleRepository {
     /**
@@ -9,4 +10,10 @@ interface SaleRepository {
      * either both happen or neither does, so a number is never lost nor handed out twice.
      */
     suspend fun recordSale(lines: List<CartLine>): Sale
+
+    /** Newest ticket first. */
+    fun observeSales(): Flow<List<Sale>>
+
+    /** Puts a failed ticket back in the print queue. Returns false if it was not failed. */
+    suspend fun requestReprint(saleId: String): Boolean
 }
