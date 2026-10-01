@@ -6,7 +6,12 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.room)
+    alias(libs.plugins.google.services)
 }
+
+val storeId = providers.gradleProperty("caisse.storeId").get()
+val firebaseDatabaseUrl = providers.gradleProperty("caisse.firebaseDatabaseUrl").get()
+val useFirebaseEmulator = providers.gradleProperty("caisse.useFirebaseEmulator").getOrElse("false").toBoolean()
 
 android {
     namespace = "com.ahmeddhibi.caisse"
@@ -20,10 +25,17 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "STORE_ID", "\"$storeId\"")
+        buildConfigField("String", "FIREBASE_DATABASE_URL", "\"$firebaseDatabaseUrl\"")
     }
 
     buildTypes {
+        debug {
+            buildConfigField("boolean", "USE_FIREBASE_EMULATOR", useFirebaseEmulator.toString())
+        }
         release {
+            buildConfigField("boolean", "USE_FIREBASE_EMULATOR", "false")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -88,6 +100,11 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.database)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
     testImplementation(libs.truth)

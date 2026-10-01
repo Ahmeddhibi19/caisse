@@ -85,3 +85,49 @@ jobs:
         with:
           name: caisse-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+
+  database-rules:
+    name: Realtime Database rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: firebase
+    steps:
+      - uses: actions/checkout@v7
+
+      # The Firebase emulators run on the JVM.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: firebase/.nvmrc
+          cache: npm
+          cache-dependency-path: firebase/package-lock.json
+
+      - name: Install Firebase tooling
+        shell: bash
+        run: |
+          set -o pipefail
+          # The lock is produced on Windows; npm ci rejects it on Linux because optional peer
+          # dependencies resolve differently. npm install still honours every locked version it can.
+          npm install --no-audit --no-fund 2>&1 | tee npm.log
+
+      - name: Test rules against the emulator
+        shell: bash
+        run: |
+          set -o pipefail
+          npx firebase emulators:exec --only database --project demo-caisse "npm test" 2>&1 | tee rules.log
+
+      - name: Surface failures
+        if: failure()
+        shell: bash
+        run: |
+          {
+            [ -f npm.log ] && grep -E -i -A3 'npm (error|err)' npm.log
+            [ -f rules.log ] && grep -E -B2 -A12 '^not ok|# fail|Error' rules.log
+          } | head -n 150 | sed -e 's/%/%25/g' -e 's/\r//g' | awk '{ printf "%s%%0A", $0 }' > failures.txt || true
+          echo "::error title=Rules job failed::$(cat failures.txt)"

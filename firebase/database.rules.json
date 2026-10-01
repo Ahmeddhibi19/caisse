@@ -1,0 +1,60 @@
+{
+  "rules": {
+    "stores": {
+      "$storeId": {
+        ".read": "auth != null",
+
+        "registerCounter": {
+          ".write": "auth != null",
+          ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === 1) || (data.exists() && newData.val() === data.val() + 1))"
+        },
+
+        "registers": {
+          "$registerKey": {
+            ".write": "auth != null && !data.exists() && newData.exists()",
+            ".validate": "$registerKey.matches(/^C[0-9][0-9]+$/) && newData.hasChildren(['uid', 'model', 'enrolledAt'])",
+            "uid": { ".validate": "newData.val() === auth.uid" },
+            "model": { ".validate": "newData.isString() && newData.val().length <= 100" },
+            "enrolledAt": { ".validate": "newData.isNumber() && newData.val() <= now" },
+            "$other": { ".validate": false }
+          }
+        },
+
+        "sales": {
+          ".indexOn": ["createdAt"],
+          "$saleId": {
+            ".write": "auth != null && newData.exists() && (!data.exists() || (data.child('uid').val() === auth.uid && data.child('ticketNumber').val() === newData.child('ticketNumber').val() && data.child('totalCents').val() === newData.child('totalCents').val()))",
+            ".validate": "newData.hasChildren(['ticketNumber', 'registerKey', 'sequence', 'totalCents', 'currency', 'createdAt', 'syncedAt', 'uid', 'lines']) && root.child('stores').child($storeId).child('registers').child(newData.child('registerKey').val()).child('uid').val() === auth.uid",
+            "ticketNumber": { ".validate": "newData.isString() && newData.val().beginsWith(newData.parent().child('registerKey').val() + '-')" },
+            "registerKey": { ".validate": "newData.isString() && newData.val().matches(/^C[0-9][0-9]+$/)" },
+            "sequence": { ".validate": "newData.isNumber() && newData.val() >= 1" },
+            "totalCents": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "currency": { ".validate": "newData.val() === 'EUR'" },
+            "createdAt": { ".validate": "newData.isNumber()" },
+            "syncedAt": { ".validate": "newData.isNumber() && newData.val() <= now" },
+            "uid": { ".validate": "newData.val() === auth.uid" },
+            "lines": {
+              ".validate": "newData.hasChildren()",
+              "$index": {
+                ".validate": "newData.hasChildren(['productId', 'name', 'unitPriceCents', 'quantity'])",
+                "productId": { ".validate": "newData.isString()" },
+                "name": { ".validate": "newData.isString() && newData.val().length <= 100" },
+                "unitPriceCents": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+                "quantity": { ".validate": "newData.isNumber() && newData.val() >= 1" },
+                "$other": { ".validate": false }
+              }
+            },
+            "$other": { ".validate": false }
+          }
+        },
+
+        "ticketIndex": {
+          "$ticketNumber": {
+            ".write": "auth != null && newData.exists() && (!data.exists() || data.val() === newData.val())",
+            ".validate": "newData.isString() && newData.parent().parent().child('sales').child(newData.val()).child('uid').val() === auth.uid && newData.parent().parent().child('sales').child(newData.val()).child('ticketNumber').val() === $ticketNumber"
+          }
+        }
+      }
+    }
+  }
+}

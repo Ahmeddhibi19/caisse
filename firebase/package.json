@@ -1,0 +1,16 @@
+{
+  "name": "caisse-firebase",
+  "private": true,
+  "type": "module",
+  "description": "Realtime Database security rules for the Caisse app, and their tests.",
+  "scripts": {
+    "test": "node --test \"tests/*.test.mjs\"",
+    "test:emulator": "firebase emulators:exec --only database --project demo-caisse \"npm test\"",
+    "deploy:rules": "firebase deploy --only database"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0",
+    "firebase-tools": "^15.32.1"
+  }
+}
