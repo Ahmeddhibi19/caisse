@@ -17,6 +17,8 @@ import java.time.Clock
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 @Singleton
 class OfflineFirstSaleRepository @Inject constructor(
@@ -61,4 +63,9 @@ class OfflineFirstSaleRepository @Inject constructor(
             SaleWithLines(sale, saleLines).toDomain()
         }
     }
+
+    override fun observeSales(): Flow<List<Sale>> =
+        saleDao.observeAll().map { sales -> sales.map { it.toDomain() } }
+
+    override suspend fun requestReprint(saleId: String): Boolean = saleDao.requeueFailedPrint(saleId) == 1
 }

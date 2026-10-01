@@ -19,6 +19,7 @@ import java.time.ZoneOffset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -94,6 +95,25 @@ class OfflineFirstSaleRepositoryTest {
         assertThat(stored.createdAt).isEqualTo(clock.instant())
         assertThat(stored.printStatus).isEqualTo(PrintStatus.PENDING)
         assertThat(stored.syncStatus).isEqualTo(SyncStatus.PENDING)
+    }
+
+    @Test
+    fun `history lists the newest ticket first`() = runTest {
+        database.registerDao().insert(registerState(number = 1))
+        repeat(3) { repository.recordSale(listOf(CartLine(espresso, 1))) }
+
+        val history = repository.observeSales().first()
+
+        assertThat(history.map { it.ticketNumber.sequence }).containsExactly(3L, 2L, 1L).inOrder()
+    }
+
+    @Test
+    fun `only a failed ticket can be sent back to the printer`() = runTest {
+        database.saleDao().insertSale(saleEntity(sequence = 1, printStatus = PrintStatus.PRINTED))
+        database.saleDao().insertSale(saleEntity(sequence = 2, printStatus = PrintStatus.FAILED))
+
+        assertThat(repository.requestReprint("sale-1-1")).isFalse()
+        assertThat(repository.requestReprint("sale-1-2")).isTrue()
     }
 
     @Test

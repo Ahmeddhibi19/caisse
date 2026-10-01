@@ -10,6 +10,8 @@ import com.ahmeddhibi.caisse.domain.model.sum
 import com.ahmeddhibi.caisse.domain.repository.SaleRepository
 import java.time.Instant
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class FakeSaleRepository : SaleRepository {
 
@@ -18,6 +20,10 @@ class FakeSaleRepository : SaleRepository {
 
     /** When set, recordSale suspends until it completes. */
     var gate: CompletableDeferred<Unit>? = null
+
+    val stored = MutableStateFlow<List<Sale>>(emptyList())
+    val reprintRequests = mutableListOf<String>()
+    var reprintAccepted = true
 
     private var sequence = 0L
 
@@ -37,5 +43,12 @@ class FakeSaleRepository : SaleRepository {
             lastPrintError = null,
             syncStatus = SyncStatus.PENDING,
         )
+    }
+
+    override fun observeSales(): Flow<List<Sale>> = stored
+
+    override suspend fun requestReprint(saleId: String): Boolean {
+        reprintRequests += saleId
+        return reprintAccepted
     }
 }
