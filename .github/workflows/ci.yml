@@ -43,8 +43,16 @@ jobs:
           changed=$(git status --porcelain --untracked-files=all -- app/schemas | awk '{ print $2 }')
           if [ -n "$changed" ]; then
             for f in $changed; do
-              content=$(sed -e 's/%/%25/g' -e 's/\r//g' "$f" | awk '{ printf "%s%%0A", $0 }')
-              echo "::error file=$f,title=Room schema not committed::${content}"
+              # Annotations are capped at a few KB, so long schemas are split on line boundaries.
+              rm -rf schema-parts && mkdir schema-parts
+              split -C 3000 -d "$f" schema-parts/part-
+              total=$(ls schema-parts | wc -l)
+              i=0
+              for part in schema-parts/part-*; do
+                i=$((i + 1))
+                content=$(sed -e 's/%/%25/g' -e 's/\r//g' "$part" | awk '{ printf "%s%%0A", $0 }')
+                echo "::error file=$f,title=Room schema not committed ($i/$total)::${content}"
+              done
             done
             exit 1
           fi
