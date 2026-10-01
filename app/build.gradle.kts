@@ -49,7 +49,7 @@ android {
 
     lint {
         textReport = true
-        textOutput = file("stdout")
+        textOutput = File("stdout")
     }
 }
 
@@ -58,6 +58,11 @@ room {
 }
 
 tasks.withType<Test>().configureEach {
+    // Robolectric 4.17 reflects into JDK internals when emulating API 36+.
+    jvmArgs(
+        "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+        "--add-opens=java.base/java.io=ALL-UNNAMED",
+    )
     testLogging {
         events("failed")
         exceptionFormat = TestExceptionFormat.FULL
